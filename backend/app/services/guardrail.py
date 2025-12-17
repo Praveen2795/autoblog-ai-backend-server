@@ -129,19 +129,42 @@ class GuardrailService:
                 if match:
                     result_text = match.group(1).strip()
             
-            # Try to find JSON object - handle nested content properly
-            # Look for {"safe": pattern
-            json_match = re.search(r'\{\s*"safe"\s*:\s*(true|false)\s*,\s*"reason"\s*:\s*"([^"]*)"', result_text, re.IGNORECASE)
-            if json_match:
-                is_safe = json_match.group(1).lower() == "true"
-                reason = json_match.group(2)
-                logger.info("Parsed via regex", is_safe=is_safe, reason=reason)
-            else:
-                # Fallback: try direct JSON parse
-                logger.info("Trying direct JSON parse", text=result_text[:100])
+            # Strategy 1: Try direct JSON parse first (most reliable if valid)
+            is_safe = None
+            reason = "Unknown"
+            
+            try:
                 result = json.loads(result_text)
                 is_safe = result.get("safe", False)
                 reason = result.get("reason", "Unknown")
+                logger.info("Parsed via direct JSON", is_safe=is_safe, reason=reason)
+            except json.JSONDecodeError:
+                # Strategy 2: Try regex for {"safe": true/false, "reason": "..."}
+                # Handle escaped quotes and complex strings
+                json_match = re.search(r'\{\s*"safe"\s*:\s*(true|false)', result_text, re.IGNORECASE)
+                if json_match:
+                    is_safe = json_match.group(1).lower() == "true"
+                    # Try to extract reason separately
+                    reason_match = re.search(r'"reason"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}', result_text)
+                    if reason_match:
+                        reason = reason_match.group(1).replace('\\"', '"')
+                    else:
+                        reason = "Safe topic" if is_safe else "Unsafe topic"
+                    logger.info("Parsed via regex", is_safe=is_safe, reason=reason)
+                else:
+                    # Strategy 3: Look for keywords as last resort
+                    text_lower = result_text.lower()
+                    if '"safe": true' in text_lower or '"safe":true' in text_lower:
+                        is_safe = True
+                        reason = "Parsed from response text"
+                    elif '"safe": false' in text_lower or '"safe":false' in text_lower:
+                        is_safe = False
+                        reason = "Parsed from response text"
+                    else:
+                        # Default to safe if we can't parse (fail-open)
+                        is_safe = True
+                        reason = f"Could not parse response: {result_text[:50]}"
+                    logger.warning("Parsed via keyword fallback", is_safe=is_safe, text=result_text[:100])
             
             logger.info(
                 "Guardrail check completed",

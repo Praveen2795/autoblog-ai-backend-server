@@ -13,6 +13,7 @@ passlib[bcrypt]==1.7.4
 # Configuration & Validation
 pydantic==2.10.3
 pydantic-settings==2.7.0
+email-validator==2.1.0
 
 # Database (optional - for future use)
 # sqlalchemy==2.0.36

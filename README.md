@@ -239,6 +239,9 @@ EMAIL_PASSWORD=xxxx-xxxx-xxxx-xxxx  # Gmail App Password
 EMAIL_IMAP_SERVER=imap.gmail.com
 EMAIL_SMTP_SERVER=smtp.gmail.com
 
+# Auto-start email monitoring on server boot (recommended for Pi deployment)
+EMAIL_AUTO_START=true
+
 # Security: Only these emails can trigger blog generation
 EMAIL_ALLOWED_SENDERS=your-personal@gmail.com
 ```
@@ -261,6 +264,10 @@ uvicorn app.main:app --port 8000
 
 ### 5. Start Email Pipeline
 
+**Option A: Auto-start (recommended)**
+Set `EMAIL_AUTO_START=true` in your `.env` file - pipeline starts automatically with the server.
+
+**Option B: Manual start**
 ```bash
 curl -X POST http://localhost:8000/api/email-pipeline/start
 ```
@@ -315,7 +322,8 @@ nano .env  # Add your API keys
 # 3. Build and run
 docker compose up -d
 
-# 4. Start email pipeline
+# 4. (Optional) Start email pipeline manually
+# If EMAIL_AUTO_START=true in .env, this step is not needed!
 curl -X POST http://localhost:8000/api/email-pipeline/start
 ```
 
@@ -526,6 +534,7 @@ Legend: 📧 Email-specific | 🌐 HTTP API | 🤖 Shared AI | 🔧 Utility
 
 ### Guardrail System
 - ✅ **3-layer content moderation** (regex → keywords → AI)
+- ✅ **Robust JSON parsing** - Handles various Gemini response formats
 - ✅ **Email whitelist** - Only allowed senders can trigger
 
 ### Infrastructure
@@ -554,6 +563,7 @@ Legend: 📧 Email-specific | 🌐 HTTP API | 🤖 Shared AI | 🔧 Utility
 | `EMAIL_IMAP_SERVER` | - | imap.gmail.com | IMAP server |
 | `EMAIL_SMTP_SERVER` | - | smtp.gmail.com | SMTP server |
 | `EMAIL_CHECK_INTERVAL` | - | 60 | Seconds between inbox checks |
+| `EMAIL_AUTO_START` | - | false | Auto-start email pipeline on boot |
 | `QUALITY_THRESHOLD` | - | 90 | Min score to approve blog |
 | `MAX_REFINEMENT_ITERATIONS` | - | 5 | Max review-refine loops |
 
