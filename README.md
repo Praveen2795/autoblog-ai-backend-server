@@ -213,8 +213,8 @@
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/yourusername/autoblog-ai.git
-cd autoblog-ai
+git clone https://github.com/Praveen2795/autoblog-ai-backend-server.git
+cd autoblog-ai-backend-server
 
 # Run setup script
 chmod +x setup-backend.sh
@@ -273,6 +273,76 @@ Send an email:
 - **Body:** *(leave empty)*
 
 Within 2-5 minutes, you'll receive a polished blog post in your inbox!
+
+---
+
+## 🐳 Docker Deployment (Raspberry Pi)
+
+Deploy AutoBlog AI on a Raspberry Pi for always-on email monitoring at $0/month.
+
+### Prerequisites
+
+- Raspberry Pi 3/4/5 with Raspberry Pi OS
+- Internet connection
+- SSH access to your Pi
+
+### Quick Deploy
+
+```bash
+# On your Raspberry Pi
+git clone https://github.com/Praveen2795/autoblog-ai-backend-server.git
+cd autoblog-ai-backend-server
+
+# Run deployment script
+chmod +x deploy-pi.sh
+./deploy-pi.sh
+```
+
+### Manual Docker Setup
+
+```bash
+# 1. Install Docker (if not installed)
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+# Log out and back in
+
+# 2. Clone and configure
+git clone https://github.com/Praveen2795/autoblog-ai-backend-server.git
+cd autoblog-ai-backend-server/backend
+cp .env.example .env
+nano .env  # Add your API keys
+
+# 3. Build and run
+docker compose up -d
+
+# 4. Start email pipeline
+curl -X POST http://localhost:8000/api/email-pipeline/start
+```
+
+### Docker Commands
+
+```bash
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+
+# Restart
+docker compose restart
+
+# Check status
+docker compose ps
+
+# Update to latest code
+git pull
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Auto-Start on Boot
+
+The container is configured with `restart: unless-stopped`, so it will automatically restart after a reboot.
 
 ---
 
